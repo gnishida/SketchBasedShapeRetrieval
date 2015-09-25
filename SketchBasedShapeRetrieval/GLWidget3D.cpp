@@ -224,9 +224,11 @@ void GLWidget3D::extractFeatures(const std::string& filename, int pitch_angle_nu
 			cv::Mat image;
 			renderImage(image);
 
+#if DEBUG
 			QFileInfo finfo(QString(filename.c_str()));
 			QString outname = "results/" + finfo.baseName() + QString("_%1_%2").arg(pitch_angle+90).arg(yaw_angle) + ".jpg";
 			cv::imwrite(outname.toUtf8().constData(), image);
+#endif
 
 			image = 255 - image;
 
