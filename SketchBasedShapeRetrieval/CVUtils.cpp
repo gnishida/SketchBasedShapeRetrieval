@@ -113,8 +113,34 @@ void mat_save(char* filename, const cv::Mat& mat, bool normalize) {
 		mat.convertTo(img, CV_32F, scale, -min_val * scale);
 	}
 
-	cv::flip(mat, img, 0);
+	//cv::flip(mat, img, 0);
 	cv::imwrite(filename, img);
+}
+
+void mat_resize(cv::Mat& m, const cv::Size& size, bool keepAspectRatio) {
+	if (!keepAspectRatio) {
+		cv::resize(m, m, size);
+	} else {
+		cv::Size orig_size = m.size();
+
+		float scale_w = (float)size.width / m.cols;
+		float scale_h = (float)size.height / m.rows;
+		if (scale_w < scale_h) {
+			cv::resize(m, m, cv::Size(size.width, orig_size.height * scale_w));
+		} else {
+			cv::resize(m, m, cv::Size(orig_size.width * scale_h, size.height));
+		}
+
+		cv::Mat temp = m.clone();
+		m = cv::Mat::zeros(size, m.type());
+		if (scale_w < scale_h) {
+			cv::Mat roi(m, cv::Rect(0, (m.rows - temp.rows) * 0.5, m.cols, temp.rows));
+			temp.copyTo(roi);
+		} else {
+			cv::Mat roi(m, cv::Rect((m.cols - temp.cols) * 0.5, 0, temp.cols, m.rows));
+			temp.copyTo(roi);
+		}
+	}
 }
 
 /**

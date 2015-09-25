@@ -11,6 +11,8 @@
 #include "offstats.h"
 #include <QFileInfo>
 
+#define DEBUG	0
+
 GLWidget3D::GLWidget3D(QWidget *parent) : QGLWidget(QGLFormat(QGL::SampleBuffers)) {
 	// 光源位置をセット
 	// ShadowMappingは平行光源を使っている。この位置から原点方向を平行光源の方向とする。
@@ -125,11 +127,15 @@ void GLWidget3D::loadOFF(const std::string& filename) {
 	}
 	renderManager.addObject("shape", "", vertices);
 
+	delete [] mesh->faces;
+	delete [] mesh->verts;
+	delete mesh;
+
 	renderManager.centerObjects();	
 }
 
 void GLWidget3D::galifTest() {
-	QDir dir("psb_test/");
+	QDir dir("d:\\dataset\\psb\\");
 	QStringList filters;
 	filters << "*.off";
 	QFileInfoList fileInfoList = dir.entryInfoList(filters, QDir::Files|QDir::NoDotAndDotDot);
@@ -141,26 +147,36 @@ void GLWidget3D::galifTest() {
 		extractFeatures(fileInfoList[i].absoluteFilePath().toUtf8().constData(), 6, 12, features);
 	}
 
-	// k-means
+	// k-meansで、BoF特徴量のクラスタリングを行う
 	std::vector<cv::Mat> centroids;
 	kmeans(features, centroids);
 
+	std::cout << "==========================" << std::endl;
+	std::cout << "#Views: " << features.size() << std::endl;
+	std::cout << "==========================" << std::endl;
+
+	// 各3Dモデルの各ビューについて、BoF特徴量をヒストグラムとして計算する
 	for (int i = 0; i < features.size(); ++i) {
 		features[i].computeHistogram(centroids);
 	}
 
 	// test
 	{
-		QDir dir("sketch_test/");
+		QDir dir("d:\\dataset\\sketch\\");
 		QStringList filters;
-		filters << "*.jpg";
+		filters << "*.jpg" << "*.png";
 		QFileInfoList fileInfoList = dir.entryInfoList(filters, QDir::Files|QDir::NoDotAndDotDot);
 		for (int i = 0; i < fileInfoList.size(); ++i) {
 			std::cout << "sketch features... " << fileInfoList[i].fileName().toUtf8().constData() << std::endl;
 
 			cv::Mat sketch = cv::imread(fileInfoList[i].absoluteFilePath().toUtf8().constData(), 0);
+			cv::threshold(sketch, sketch, 128, 255, cv::THRESH_BINARY);
 			sketch = 255 - sketch;
 			sketch.convertTo(sketch, CV_32F, 1.0f, 0.0f);
+
+
+			// スケッチサイズを画面サイズに合わせる
+			cvutils::mat_resize(sketch, cv::Size(width(), height()), true);
 
 			BagOfFeature bof(sketch, fileInfoList[i].absoluteFilePath().toUtf8().constData(), camera, 2.5f, 10.0f);
 			bof.computeHistogram(centroids);
@@ -169,12 +185,20 @@ void GLWidget3D::galifTest() {
 			bof.findSimilarModels(features, results, 1);
 
 			for (int k = 0; k < results.size(); ++k) {
-				std::cout << "results: " << fileInfoList[i].fileName().toUtf8().constData() << " -> " << results[k] << std::endl;
-				/*
+				loadOFF(features[results[k]].filepath);
+				camera = features[results[k]].camera;
+
+
+				camera.updateMVPMatrix();
+
+				cv::Mat image;
+				renderImage(image);
+
+#if DEBUG
 				char filename[256];
-				sprintf(filename, "results/result_%d_%d.jpg", i, k);
-				cv::imwrite(filename, results[k]);
-				*/
+				sprintf(filename, "results/result_%s_%d.jpg", fileInfoList[i].baseName().toUtf8().constData(), k);
+				cv::imwrite(filename, image);
+#endif
 			}
 		}
 	}
@@ -200,11 +224,11 @@ void GLWidget3D::extractFeatures(const std::string& filename, int pitch_angle_nu
 			cv::Mat image;
 			renderImage(image);
 
-			/*
 			QFileInfo finfo(QString(filename.c_str()));
 			QString outname = "results/" + finfo.baseName() + QString("_%1_%2").arg(pitch_angle+90).arg(yaw_angle) + ".jpg";
 			cv::imwrite(outname.toUtf8().constData(), image);
-			*/
+
+			image = 255 - image;
 
 			BagOfFeature bof(image, filename, camera, 2.5f, 10.0f);
 			features.push_back(bof);
@@ -232,9 +256,11 @@ void GLWidget3D::renderImage(cv::Mat& image) {
 	cv::Mat src_img(height(), width(), CV_8UC3, data);
 
 	cv::cvtColor(src_img, src_img, CV_BGR2GRAY);
+	cv::flip(src_img, src_img, 0);
 	//cv::threshold(src_img, src_img, 230, 255, 0);
 
-	//src_img = 255 - src_img;
+	cv::threshold(src_img, src_img, 128, 255, cv::THRESH_BINARY);
+
 	src_img.convertTo(image, CV_32F, 1.0f, 0.0f);
 				
 	delete [] data;
@@ -243,7 +269,7 @@ void GLWidget3D::renderImage(cv::Mat& image) {
 void GLWidget3D::gaborFilterTest() {
 	glUniform1i(glGetUniformLocation(renderManager.program, "depthComputation"), 0);
 
-	loadOFF("psb/m0.off");
+	loadOFF("psb_test/m0.off");
 
 	int pitch_angle_step = 180;
 	int yaw_angle_step = 360;
@@ -257,9 +283,10 @@ void GLWidget3D::gaborFilterTest() {
 
 	cv::Mat image;
 	renderImage(image);
+	image = 255 - image;
 
 	for (float sigma = 1.0f; sigma < 10.0f; sigma += 0.5f) {
-		BagOfFeature bof(image, "psb/m0.off", camera, sigma, 10.0f);
+		BagOfFeature bof(image, "psb_test/m0.off", camera, sigma, 10.0f);
 	}
 }
 

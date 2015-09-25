@@ -2,6 +2,8 @@
 #include "CVUtils.h"
 #include "TopNSearch.h"
 
+#define DEBUG	0
+
 BagOfFeature::BagOfFeature(const cv::Mat& image, const std::string& filepath, const Camera& camera, float sigma, float lmbd) {
 	this->filepath = filepath;
 	this->camera = camera;
@@ -12,18 +14,18 @@ void BagOfFeature::computeHistogram(const std::vector<cv::Mat>& visualWords) {
 	histogram = cv::Mat::zeros(visualWords.size(), 1, CV_32F);
 
 	for (int i = 0; i < features.size(); ++i) {
-		float max_score = 0.0f;
-		int max_id = -1;
+		float min_dist = std::numeric_limits<float>::max();
+		int min_id = -1;
 
 		for (int j = 0; j < visualWords.size(); ++j) {
-			float score = cv::norm(features[i] - visualWords[j]);
-			if (score > max_score) {
-				max_score = score;
-				max_id = j;
+			float dist = cv::norm(features[i] - visualWords[j]);
+			if (dist < min_dist) {
+				min_dist = dist;
+				min_id = j;
 			}
 		}
 
-		cvutils::mat_add_value(histogram, max_id, 0, 1);
+		cvutils::mat_add_value(histogram, min_id, 0, 1);
 	}
 
 	histogram /= features.size();
@@ -35,22 +37,28 @@ void BagOfFeature::extractFeatures(const cv::Mat& image, float sigma, float lmbd
 	{
 		for (int k = 0; k < 4; ++k) {
 			float theta = (float)k * 45.0f / 180.0f * 3.14159265f;
-			cv::Mat kernel = cv::getGaborKernel(cv::Size(21, 21), sigma, theta, lmbd, 0.5f, 0.0, CV_32F);
+			//cv::Mat kernel = cv::getGaborKernel(cv::Size(21, 21), sigma, theta, lmbd, 0.5f, 0.0, CV_32F);
+			cv::Mat kernel = cv::getGaborKernel(cv::Size(31, 31), 4.0f, theta, 10.0f, 0.5f, 0.0, CV_32F);
 			kernel /= 1.0 * cv::sum(kernel)[0];
 
 			cv::Mat dest;
 			cv::filter2D(image, dest, CV_32F, kernel);
 
-			cv::Mat dest2;
-			cv::pow(dest, 2, dest2);
+			cv::threshold(dest, dest, 125, 255, cv::THRESH_BINARY);
 
 			/*
-			char filename[256];
-			sprintf(filename, "results/gabor_%.1lf_%.1lf_%.1lf.jpg", sigma, lmbd, theta);
-			cvutils::mat_save(filename, dest2, true);
+			char filename1[256];
+			sprintf(filename1, "results/gabor_%.1lf_%.1lf_%.1lf.jpg", sigma, lmbd, theta);
+			cv::imwrite(filename1, dest);
 			*/
 
-			filteredImages.push_back(dest2);
+			/*
+			char filename2[256];
+			sprintf(filename2, "results/gabor_normalized_%.1lf_%.1lf_%.1lf.jpg", sigma, lmbd, theta);
+			cvutils::mat_save(filename2, dest, true);
+			*/
+
+			filteredImages.push_back(dest);
 		}
 	}
 
@@ -71,7 +79,7 @@ void BagOfFeature::extractFeatures(const cv::Mat& image, float sigma, float lmbd
 				int y2 = std::min(y1 + (int)patch_h, image.rows);
 	
 				cv::Mat roi(image, cv::Rect(x1, y1, x2 - x1, y2 - y1));
-				if (cv::sum(roi)[0] < 0.001f) continue;
+				if (cv::sum(roi)[0] < 0.1f) continue;
 			}
 
 			for (int k = 0; k < filteredImages.size(); ++k) {
@@ -96,9 +104,28 @@ void BagOfFeature::extractFeatures(const cv::Mat& image, float sigma, float lmbd
 					}
 				}
 			}
+			
+			/*{
+				cv::Mat f2(8, 8, CV_64F);
+				for (int r = 0; r < 2; ++r) {
+					for (int c = 0; c < 2; ++c) {
+						for (int r2 = 0; r2 < 4; ++r2) {
+							for (int c2 = 0; c2 < 4; ++c2) {
+								cvutils::mat_set_value(f2, r * 4 + r2, c * 4 + c2, cvutils::mat_get_value(f, r * 32 + c * 16 + r2 * 4 + c2, 0));
+							}
+						}
+					}
+				}
+			
+				char filename2[256];
+				sprintf(filename2, "results/feature_normalized_%d_%d.jpg", u, v);
+				cvutils::mat_save(filename2, f2, true);
+			}*/
 
-			f /= cv::norm(f);
-			features.push_back(f);
+			if (cv::sum(f)[0] > 0.0f) {
+				f /= cv::norm(f);
+				features.push_back(f);
+			}
 		}
 	}
 }
@@ -118,5 +145,7 @@ void BagOfFeature::findSimilarModels(const std::vector<BagOfFeature>& bofs, std:
 }
 
 float BagOfFeature::similarity(const cv::Mat& h1, const cv::Mat& h2) {
+	//std::cout << h1 - h2 << std::endl;
+
 	return cvutils::mat_dot(h1, h2) / cv::norm(h1) / cv::norm(h2);
 }
