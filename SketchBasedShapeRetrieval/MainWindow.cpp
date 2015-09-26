@@ -22,6 +22,8 @@ void MainWindow::onOpenOFF() {
 	QString filename = QFileDialog::getOpenFileName(this, tr("Open OFF file..."), "", tr("OFF Files (*.off)"));
 	if (filename.isEmpty()) return;
 
+	QString title = "Sketch Based Shape Retrieval - " + filename;
+	this->setWindowTitle(title);
 	glWidget->loadOFF(filename.toUtf8().data());
 	glWidget->updateGL();
 }

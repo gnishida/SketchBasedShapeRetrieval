@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'MainWindow.ui'
 **
-** Created: Fri Sep 25 08:46:58 2015
+** Created: Sat Sep 26 09:49:00 2015
 **      by: Qt User Interface Compiler version 4.8.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -181,7 +181,7 @@ public:
 
     void retranslateUi(QMainWindow *MainWindowClass)
     {
-        MainWindowClass->setWindowTitle(QApplication::translate("MainWindowClass", "Sketch Application", 0, QApplication::UnicodeUTF8));
+        MainWindowClass->setWindowTitle(QApplication::translate("MainWindowClass", "Sketch Based Shape Retrieval", 0, QApplication::UnicodeUTF8));
         actionExit->setText(QApplication::translate("MainWindowClass", "&Exit", 0, QApplication::UnicodeUTF8));
         actionExit->setShortcut(QApplication::translate("MainWindowClass", "Ctrl+Q", 0, QApplication::UnicodeUTF8));
         actionGreedyInverse->setText(QApplication::translate("MainWindowClass", "&Greedy Inverse", 0, QApplication::UnicodeUTF8));
