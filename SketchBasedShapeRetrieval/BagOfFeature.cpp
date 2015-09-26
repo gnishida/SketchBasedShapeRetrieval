@@ -38,7 +38,7 @@ void BagOfFeature::extractFeatures(const cv::Mat& image, float sigma, float lmbd
 		for (int k = 0; k < 4; ++k) {
 			float theta = (float)k * 45.0f / 180.0f * 3.14159265f;
 			//cv::Mat kernel = cv::getGaborKernel(cv::Size(21, 21), sigma, theta, lmbd, 0.5f, 0.0, CV_32F);
-			cv::Mat kernel = cv::getGaborKernel(cv::Size(31, 31), 4.0f, theta, 10.0f, 0.5f, 0.0, CV_32F);
+			cv::Mat kernel = cv::getGaborKernel(cv::Size(31, 31), sigma, theta, lmbd, 0.5f, 0.0, CV_32F);
 			kernel /= 1.0 * cv::sum(kernel)[0];
 
 			cv::Mat dest;

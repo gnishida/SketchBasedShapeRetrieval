@@ -10,6 +10,7 @@
 #include "TopNSearch.h"
 #include "offstats.h"
 #include <QFileInfo>
+#include "ShapeMatching.h"
 
 #define DEBUG	0
 
@@ -135,105 +136,10 @@ void GLWidget3D::loadOFF(const std::string& filename) {
 }
 
 void GLWidget3D::galifTest() {
-	QDir dir("d:\\dataset\\psb\\");
-	QStringList filters;
-	filters << "*.off";
-	QFileInfoList fileInfoList = dir.entryInfoList(filters, QDir::Files|QDir::NoDotAndDotDot);
+	ShapeMatching shapeMatching(this, width(), height(), 4.0f, 10.0f);
 
-	std::vector<BagOfFeature> features;
-	for (int i = 0; i < fileInfoList.size(); ++i) {
-		std::cout << "extracting features... " << fileInfoList[i].fileName().toUtf8().constData() << std::endl;
-		//extractFeatures(fileInfoList[i].absoluteFilePath().toUtf8().constData(), 18, 36, features);
-		extractFeatures(fileInfoList[i].absoluteFilePath().toUtf8().constData(), 6, 12, features);
-	}
-
-	// k-meansで、BoF特徴量のクラスタリングを行う
-	std::vector<cv::Mat> centroids;
-	kmeans(features, centroids);
-
-	std::cout << "==========================" << std::endl;
-	std::cout << "#Views: " << features.size() << std::endl;
-	std::cout << "==========================" << std::endl;
-
-	// 各3Dモデルの各ビューについて、BoF特徴量をヒストグラムとして計算する
-	for (int i = 0; i < features.size(); ++i) {
-		features[i].computeHistogram(centroids);
-	}
-
-	// test
-	{
-		QDir dir("d:\\dataset\\sketch\\");
-		QStringList filters;
-		filters << "*.jpg" << "*.png";
-		QFileInfoList fileInfoList = dir.entryInfoList(filters, QDir::Files|QDir::NoDotAndDotDot);
-		for (int i = 0; i < fileInfoList.size(); ++i) {
-			std::cout << "sketch features... " << fileInfoList[i].fileName().toUtf8().constData() << std::endl;
-
-			cv::Mat sketch = cv::imread(fileInfoList[i].absoluteFilePath().toUtf8().constData(), 0);
-			cv::threshold(sketch, sketch, 128, 255, cv::THRESH_BINARY);
-			sketch = 255 - sketch;
-			sketch.convertTo(sketch, CV_32F, 1.0f, 0.0f);
-
-
-			// スケッチサイズを画面サイズに合わせる
-			cvutils::mat_resize(sketch, cv::Size(width(), height()), true);
-
-			BagOfFeature bof(sketch, fileInfoList[i].absoluteFilePath().toUtf8().constData(), camera, 2.5f, 10.0f);
-			bof.computeHistogram(centroids);
-
-			std::vector<int> results;
-			bof.findSimilarModels(features, results, 1);
-
-			for (int k = 0; k < results.size(); ++k) {
-				loadOFF(features[results[k]].filepath);
-				camera = features[results[k]].camera;
-
-
-				camera.updateMVPMatrix();
-
-				cv::Mat image;
-				renderImage(image);
-
-				char filename[256];
-				sprintf(filename, "results/result_%s_%d.jpg", fileInfoList[i].baseName().toUtf8().constData(), k);
-				cv::imwrite(filename, image);
-			}
-		}
-	}
-}
-
-void GLWidget3D::extractFeatures(const std::string& filename, int pitch_angle_num, int yaw_angle_num, std::vector<BagOfFeature>& features) {
-	glUniform1i(glGetUniformLocation(renderManager.program, "depthComputation"), 0);
-
-	loadOFF(filename);
-
-	int pitch_angle_step = 180 / pitch_angle_num;
-	int yaw_angle_step = 360 / yaw_angle_num;
-
-	for (int pitch_angle = -90; pitch_angle <= 90; pitch_angle += pitch_angle_step) {
-		for (int yaw_angle = 0; yaw_angle < 360; yaw_angle += yaw_angle_step) {
-			camera.xrot = pitch_angle;
-			camera.yrot = yaw_angle;
-			camera.zrot = 0.0f;
-			camera.pos.z = 1.6f;
-
-			camera.updateMVPMatrix();
-
-			cv::Mat image;
-			renderImage(image);
-
-#if DEBUG
-			QFileInfo finfo(QString(filename.c_str()));
-			QString outname = "results/" + finfo.baseName() + QString("_%1_%2").arg(pitch_angle+90).arg(yaw_angle) + ".jpg";
-			cv::imwrite(outname.toUtf8().constData(), image);
-#endif
-
-			image = 255 - image;
-
-			BagOfFeature bof(image, filename, camera, 2.5f, 10.0f);
-			features.push_back(bof);
-		}
-	}
+	shapeMatching.learn("d:\\dataset\\psb\\", 6, 12);
+	shapeMatching.test("d:\\dataset\\test\\");
 }
 
 void GLWidget3D::renderImage(cv::Mat& image) {
@@ -287,39 +193,6 @@ void GLWidget3D::gaborFilterTest() {
 
 	for (float sigma = 1.0f; sigma < 10.0f; sigma += 0.5f) {
 		BagOfFeature bof(image, "psb_test/m0.off", camera, sigma, 10.0f);
-	}
-}
-
-void GLWidget3D::kmeans(const std::vector<BagOfFeature>& features, std::vector<cv::Mat>& centroids) {
-	int num = 0;
-	for (int i = 0; i < features.size(); ++i) {
-		num += features[i].features.size();
-	}
-
-	cv::Mat concatenatedFeatures(num, features[0].features[0].rows, CV_32F);
-	int count = 0;
-	for (int i = 0; i < features.size(); ++i) {
-		for (int j = 0; j < features[i].features.size(); ++j) {
-			for (int k = 0; k < features[i].features[j].rows; ++k) {
-				cvutils::mat_set_value(concatenatedFeatures, count, k, cvutils::mat_get_value(features[i].features[j], k, 0));
-			}
-			count++;
-		}
-	}
-
-	std::vector<int> labels;
-	int attempts = 5;
-	cv::Mat mu;
-	//cv::kmeans(concatenatedFeatures, 100, labels, cv::TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 10000, 0.0001), attempts, cv::KMEANS_PP_CENTERS, mu);
-	cv::kmeans(concatenatedFeatures, 20, labels, cv::TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 10000, 0.0001), attempts, cv::KMEANS_PP_CENTERS, mu);
-
-	centroids.clear();
-	for (int r = 0; r < mu.rows; ++r) {
-		cv::Mat centroid(mu.cols, 1, CV_32F);
-		for (int c = 0; c < mu.cols; ++c) {
-			cvutils::mat_set_value(centroid, c, 0, cvutils::mat_get_value(mu, r, c));
-		}
-		centroids.push_back(centroid);
 	}
 }
 

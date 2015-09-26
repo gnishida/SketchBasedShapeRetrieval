@@ -157,6 +157,7 @@
     <ClCompile Include="RenderManager.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShadowMapping.cpp" />
+    <ClCompile Include="ShapeMatching.cpp" />
     <ClCompile Include="SketchyRenderingBuffer.cpp" />
     <ClCompile Include="TopNSearch.cpp" />
   </ItemGroup>
@@ -213,6 +214,7 @@
     <ClInclude Include="RenderManager.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShadowMapping.h" />
+    <ClInclude Include="ShapeMatching.h" />
     <ClInclude Include="SketchyRenderingBuffer.h" />
     <ClInclude Include="TopNSearch.h" />
     <ClInclude Include="Vertex.h" />
