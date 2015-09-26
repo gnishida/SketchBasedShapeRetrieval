@@ -16,6 +16,7 @@ public:
 
 	int width;
 	int height;
+	int vocabulary_size;
 	float sigma;
 	float lmbd;
 	int patch_width;
@@ -26,7 +27,7 @@ public:
 
 
 public:
-	ShapeMatching(GLWidget3D* glWidget3D, int width, int height, float sigma, float lmbd, int patch_width, int patch_height);
+	ShapeMatching(GLWidget3D* glWidget3D, int width, int height, int vocabulary_size, float sigma, float lmbd, int patch_width, int patch_height);
 	~ShapeMatching();
 
 	void learn(const std::string& traindata_dir, int pitch_angle_num, int yaw_angle_num);
