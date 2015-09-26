@@ -194,11 +194,9 @@ void GLWidget3D::galifTest() {
 				cv::Mat image;
 				renderImage(image);
 
-#if DEBUG
 				char filename[256];
 				sprintf(filename, "results/result_%s_%d.jpg", fileInfoList[i].baseName().toUtf8().constData(), k);
 				cv::imwrite(filename, image);
-#endif
 			}
 		}
 	}
