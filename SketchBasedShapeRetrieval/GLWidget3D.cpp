@@ -139,7 +139,7 @@ void GLWidget3D::galifTest() {
 	ShapeMatching shapeMatching(this, width(), height(), 40, 4.0f, 10.0f, width() * 0.2f, height() * 0.2f);
 
 	shapeMatching.learn("d:\\dataset\\psb\\", 6, 12);
-	shapeMatching.test("d:\\dataset\\test\\");
+	shapeMatching.test("d:\\dataset\\sketch\\");
 }
 
 void GLWidget3D::renderImage(cv::Mat& image) {
