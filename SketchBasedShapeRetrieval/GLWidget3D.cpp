@@ -136,7 +136,7 @@ void GLWidget3D::loadOFF(const std::string& filename) {
 }
 
 void GLWidget3D::galifTest() {
-	ShapeMatching shapeMatching(this, width(), height(), 4.0f, 10.0f);
+	ShapeMatching shapeMatching(this, width(), height(), 4.0f, 10.0f, width() * 0.2f, height() * 0.2f);
 
 	shapeMatching.learn("d:\\dataset\\psb\\", 6, 12);
 	shapeMatching.test("d:\\dataset\\test\\");
@@ -191,8 +191,6 @@ void GLWidget3D::gaborFilterTest() {
 	renderImage(image);
 	image = 255 - image;
 
-	for (float sigma = 1.0f; sigma < 10.0f; sigma += 0.5f) {
-		BagOfFeature bof(image, "psb_test/m0.off", camera, sigma, 10.0f);
-	}
+	BagOfFeature bof(image, "psb_test/m0.off", camera, 4.0f, 10.0f, width() * 0.2f, height() * 0.2f);
 }
 

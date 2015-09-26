@@ -1,13 +1,13 @@
-#include "BagOfFeature.h"
+﻿#include "BagOfFeature.h"
 #include "CVUtils.h"
 #include "TopNSearch.h"
 
 #define DEBUG	0
 
-BagOfFeature::BagOfFeature(const cv::Mat& image, const std::string& filepath, const Camera& camera, float sigma, float lmbd) {
+BagOfFeature::BagOfFeature(const cv::Mat& image, const std::string& filepath, const Camera& camera, float sigma, float lmbd, int patch_width, int patch_height) {
 	this->filepath = filepath;
 	this->camera = camera;
-	extractFeatures(image, sigma, lmbd);
+	extractFeatures(image, sigma, lmbd, patch_width, patch_height);
 }
 
 void BagOfFeature::computeHistogram(const std::vector<cv::Mat>& visualWords) {
@@ -31,7 +31,7 @@ void BagOfFeature::computeHistogram(const std::vector<cv::Mat>& visualWords) {
 	histogram /= features.size();
 }
 
-void BagOfFeature::extractFeatures(const cv::Mat& image, float sigma, float lmbd) {
+void BagOfFeature::extractFeatures(const cv::Mat& image, float sigma, float lmbd, int patch_width, int patch_height) {
 	std::vector<cv::Mat> filteredImages;
 
 	{
@@ -63,20 +63,21 @@ void BagOfFeature::extractFeatures(const cv::Mat& image, float sigma, float lmbd
 	}
 
 
-	float patch_w = filteredImages[0].cols / 32.0f;
-	float patch_h = filteredImages[0].rows / 32.0f;
-	float tile_w = ceil(patch_w / 4.0f);
-	float tile_h = ceil(patch_h / 4.0f);
+	float patch_w_interval = (float)(filteredImages[0].cols - patch_width) / 31.0f;
+	float patch_h_interval = (float)(filteredImages[0].rows - patch_height) / 31.0f;
+	float tile_w = patch_width / 4.0f;
+	float tile_h = patch_height / 4.0f;
 	
 	for (int u = 0; u < 32; ++u) {
 		for (int v = 0; v < 32; ++v) {
 			cv::Mat f = cv::Mat::zeros(4 * 4 * filteredImages.size(), 1, CV_32F);
 
+			// もとの画像で、このパッチ内に線がなければ、スキップ
 			{
-				int x1 = u * patch_w;
-				int y1 = v * patch_h;
-				int x2 = std::min(x1 + (int)patch_w, image.cols);
-				int y2 = std::min(y1 + (int)patch_h, image.rows);
+				int x1 = u * patch_w_interval;
+				int y1 = v * patch_h_interval;
+				int x2 = std::min(x1 + patch_width, image.cols);
+				int y2 = std::min(y1 + patch_height, image.rows);
 	
 				cv::Mat roi(image, cv::Rect(x1, y1, x2 - x1, y2 - y1));
 				if (cv::sum(roi)[0] < 0.1f) continue;
@@ -90,8 +91,8 @@ void BagOfFeature::extractFeatures(const cv::Mat& image, float sigma, float lmbd
 
 						for (int x = 0; x < tile_w; ++x) {
 							for (int y = 0; y < tile_h; ++y) {
-								int xx = u * patch_w + s * tile_w + x;
-								int yy = v * patch_h + t * tile_h + y;
+								int xx = u * patch_w_interval + s * tile_w + x;
+								int yy = v * patch_h_interval + t * tile_h + y;
 
 								if (xx < filteredImages[k].cols && yy < filteredImages[k].rows) {
 									value_sum += cvutils::mat_get_value(filteredImages[k], yy, xx);
