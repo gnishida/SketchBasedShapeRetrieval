@@ -136,9 +136,9 @@ void GLWidget3D::loadOFF(const std::string& filename) {
 }
 
 void GLWidget3D::galifTest() {
-	ShapeMatching shapeMatching(this, width(), height(), 40, 4.0f, 10.0f, width() * 0.2f, height() * 0.2f);
+	ShapeMatching shapeMatching(this, width(), height(), 40, 4.0f, 10.0f, width() * 0.3f, height() * 0.3f);
 
-	shapeMatching.learn("d:\\dataset\\psb\\", 6, 12);
+	shapeMatching.learn("d:\\dataset\\psb\\", 6, 18);
 	shapeMatching.test("d:\\dataset\\sketch\\");
 }
 
