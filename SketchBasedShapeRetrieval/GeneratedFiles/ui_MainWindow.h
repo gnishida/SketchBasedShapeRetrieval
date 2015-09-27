@@ -1,8 +1,8 @@
 /********************************************************************************
 ** Form generated from reading UI file 'MainWindow.ui'
 **
-** Created: Sat Sep 26 09:49:00 2015
-**      by: Qt User Interface Compiler version 4.8.2
+** Created: Sun Sep 27 16:14:54 2015
+**      by: Qt User Interface Compiler version 4.8.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -59,10 +59,13 @@ public:
     QAction *actionIDFT;
     QAction *actionCollectOFFFiles;
     QAction *actionGaborFilterTest;
+    QAction *actionRenderingRegular;
+    QAction *actionRenderingLine;
     QWidget *centralWidget;
     QMenuBar *menuBar;
     QMenu *menuFile;
     QMenu *menuTool;
+    QMenu *menuRendering;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
 
@@ -146,6 +149,10 @@ public:
         actionCollectOFFFiles->setObjectName(QString::fromUtf8("actionCollectOFFFiles"));
         actionGaborFilterTest = new QAction(MainWindowClass);
         actionGaborFilterTest->setObjectName(QString::fromUtf8("actionGaborFilterTest"));
+        actionRenderingRegular = new QAction(MainWindowClass);
+        actionRenderingRegular->setObjectName(QString::fromUtf8("actionRenderingRegular"));
+        actionRenderingLine = new QAction(MainWindowClass);
+        actionRenderingLine->setObjectName(QString::fromUtf8("actionRenderingLine"));
         centralWidget = new QWidget(MainWindowClass);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         MainWindowClass->setCentralWidget(centralWidget);
@@ -156,6 +163,8 @@ public:
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
         menuTool = new QMenu(menuBar);
         menuTool->setObjectName(QString::fromUtf8("menuTool"));
+        menuRendering = new QMenu(menuBar);
+        menuRendering->setObjectName(QString::fromUtf8("menuRendering"));
         MainWindowClass->setMenuBar(menuBar);
         mainToolBar = new QToolBar(MainWindowClass);
         mainToolBar->setObjectName(QString::fromUtf8("mainToolBar"));
@@ -166,6 +175,7 @@ public:
 
         menuBar->addAction(menuFile->menuAction());
         menuBar->addAction(menuTool->menuAction());
+        menuBar->addAction(menuRendering->menuAction());
         menuFile->addAction(actionOpenOFF);
         menuFile->addSeparator();
         menuFile->addAction(actionExit);
@@ -173,6 +183,8 @@ public:
         menuTool->addAction(actionGaborFilterTest);
         menuTool->addSeparator();
         menuTool->addAction(actionCollectOFFFiles);
+        menuRendering->addAction(actionRenderingRegular);
+        menuRendering->addAction(actionRenderingLine);
 
         retranslateUi(MainWindowClass);
 
@@ -226,8 +238,13 @@ public:
         actionIDFT->setText(QApplication::translate("MainWindowClass", "IDFT", 0, QApplication::UnicodeUTF8));
         actionCollectOFFFiles->setText(QApplication::translate("MainWindowClass", "Collect OFF Files", 0, QApplication::UnicodeUTF8));
         actionGaborFilterTest->setText(QApplication::translate("MainWindowClass", "Gabor Filter Test", 0, QApplication::UnicodeUTF8));
+        actionRenderingRegular->setText(QApplication::translate("MainWindowClass", "Regular", 0, QApplication::UnicodeUTF8));
+        actionRenderingRegular->setShortcut(QApplication::translate("MainWindowClass", "R", 0, QApplication::UnicodeUTF8));
+        actionRenderingLine->setText(QApplication::translate("MainWindowClass", "Line", 0, QApplication::UnicodeUTF8));
+        actionRenderingLine->setShortcut(QApplication::translate("MainWindowClass", "L", 0, QApplication::UnicodeUTF8));
         menuFile->setTitle(QApplication::translate("MainWindowClass", "&File", 0, QApplication::UnicodeUTF8));
         menuTool->setTitle(QApplication::translate("MainWindowClass", "Tool", 0, QApplication::UnicodeUTF8));
+        menuRendering->setTitle(QApplication::translate("MainWindowClass", "Rendering", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };

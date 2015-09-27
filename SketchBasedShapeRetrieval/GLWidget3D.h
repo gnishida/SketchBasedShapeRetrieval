@@ -20,7 +20,7 @@ public:
 	GLWidget3D(QWidget *parent = 0);
 
 	void drawScene(int drawMode);
-	void loadOFF(const std::string& filename);
+	void loadObject(const std::string& filename);
 	void galifTest();
 	void gaborFilterTest();
 	void extractFeatures(const std::string& filename, int pitch_angle_num, int yaw_angle_num, std::vector<BagOfFeature>& features);
@@ -38,15 +38,22 @@ protected:
 	void mouseReleaseEvent(QMouseEvent *e);
 
 public:
+	static enum { RENDERING_MODE_REGULAR = 0, RENDERING_MODE_LINE };
+
+public:
 	Camera camera;
 	glm::vec3 light_dir;
 	glm::mat4 light_mvpMatrix;
 
 	RenderManager renderManager;
-	bool showWireframe;
-	bool showScopeCoordinateSystem;
 
 	std::vector<Vertex> vertices;
 	SketchyRenderingBuffer rb;
+
+	int renderingMode;
+	float depthSensitivity;
+	float normalSensitivity;
+	bool useThreshold;
+	float threshold;
 };
 

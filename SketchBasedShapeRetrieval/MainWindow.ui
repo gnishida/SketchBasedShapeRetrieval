@@ -40,8 +40,16 @@
     <addaction name="separator"/>
     <addaction name="actionCollectOFFFiles"/>
    </widget>
+   <widget class="QMenu" name="menuRendering">
+    <property name="title">
+     <string>Rendering</string>
+    </property>
+    <addaction name="actionRenderingRegular"/>
+    <addaction name="actionRenderingLine"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTool"/>
+   <addaction name="menuRendering"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -279,6 +287,22 @@
   <action name="actionGaborFilterTest">
    <property name="text">
     <string>Gabor Filter Test</string>
+   </property>
+  </action>
+  <action name="actionRenderingRegular">
+   <property name="text">
+    <string>Regular</string>
+   </property>
+   <property name="shortcut">
+    <string>R</string>
+   </property>
+  </action>
+  <action name="actionRenderingLine">
+   <property name="text">
+    <string>Line</string>
+   </property>
+   <property name="shortcut">
+    <string>L</string>
    </property>
   </action>
  </widget>

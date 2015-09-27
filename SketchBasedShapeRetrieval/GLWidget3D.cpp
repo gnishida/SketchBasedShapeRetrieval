@@ -60,8 +60,11 @@ void GLWidget3D::initializeGL() {
 	renderManager.init("../shaders/vertex.glsl", "", "../shaders/fragment.glsl", false);
 	rb.init(renderManager.program, 4, 5, width(), height());
 
-	showWireframe = true;
-	showScopeCoordinateSystem = false;
+	renderingMode = RENDERING_MODE_REGULAR;
+	depthSensitivity = 6000.0f;
+	normalSensitivity = 1.0f;
+	useThreshold = true;
+	threshold = 0.25f;
 
 	// set the clear color for the screen
 	//qglClearColor(QColor(113, 112, 117));
@@ -110,27 +113,42 @@ void GLWidget3D::drawScene(int drawMode) {
 	} else {
 		glUniform1i(glGetUniformLocation(renderManager.program, "depthComputation"), 1);
 	}
+
+	if (renderingMode == RENDERING_MODE_REGULAR) {
+		glUniform1i(glGetUniformLocation(renderManager.program, "lineRendering"), 0);
+	} else {
+		glUniform1i(glGetUniformLocation(renderManager.program, "lineRendering"), 1);
+		glUniform1f(glGetUniformLocation(renderManager.program, "depthSensitivity"), depthSensitivity);
+		glUniform1f(glGetUniformLocation(renderManager.program, "normalSensitivity"), normalSensitivity);
+		glUniform1i(glGetUniformLocation(renderManager.program, "useThreshold"), useThreshold ? 1 : 0);
+		glUniform1f(glGetUniformLocation(renderManager.program, "threshold"), threshold);
+	}
 	
 	renderManager.renderAll();
 }
 
-void GLWidget3D::loadOFF(const std::string& filename) {
+void GLWidget3D::loadObject(const std::string& filename) {
 	renderManager.removeObjects();
 
 	std::vector<Vertex> vertices;
-	psb::Mesh* mesh = psb::ReadOffFile(filename.c_str());
-	for (int i = 0; i < mesh->nfaces; i++) {
-		psb::Face& f = mesh->faces[i];
+	QFileInfo info(filename.c_str());
+	if (info.suffix() == "obj") {
+		OBJLoader::load(filename, vertices);
+		renderManager.addObject("shape", "", vertices);
+	} else {
+		psb::Mesh* mesh = psb::ReadOffFile(filename.c_str());
+		for (int i = 0; i < mesh->nfaces; i++) {
+			psb::Face& f = mesh->faces[i];
 
-		for (int k = 0; k < f.nverts; ++k) {
-			vertices.push_back(Vertex(glm::vec3(f.verts[k]->x, f.verts[k]->y, f.verts[k]->z), glm::vec3(f.normal[0], f.normal[1], f.normal[2]), glm::vec4(1, 1, 1, 1)));
+			for (int k = 0; k < f.nverts; ++k) {
+				vertices.push_back(Vertex(glm::vec3(f.verts[k]->x, f.verts[k]->y, f.verts[k]->z), glm::vec3(f.normal[0], f.normal[1], f.normal[2]), glm::vec4(1, 1, 1, 1)));
+			}
 		}
+		renderManager.addObject("shape", "", vertices);
+		delete [] mesh->faces;
+		delete [] mesh->verts;
+		delete mesh;
 	}
-	renderManager.addObject("shape", "", vertices);
-
-	delete [] mesh->faces;
-	delete [] mesh->verts;
-	delete mesh;
 
 	renderManager.centerObjects();	
 }
@@ -138,8 +156,15 @@ void GLWidget3D::loadOFF(const std::string& filename) {
 void GLWidget3D::galifTest() {
 	ShapeMatching shapeMatching(this, width(), height(), 40, 4.0f, 10.0f, width() * 0.3f, height() * 0.3f);
 
+	// 現在のレンダリングモードをバックアップ
+	int currentRenderingMode = renderingMode;
+	renderingMode = RENDERING_MODE_LINE;
+
 	shapeMatching.learn("d:\\dataset\\psb\\", 6, 18);
 	shapeMatching.test("d:\\dataset\\sketch\\");
+
+	// 元のレンダリングモードに戻す
+	renderingMode = currentRenderingMode;
 }
 
 void GLWidget3D::renderImage(cv::Mat& image) {
@@ -175,7 +200,7 @@ void GLWidget3D::renderImage(cv::Mat& image) {
 void GLWidget3D::gaborFilterTest() {
 	glUniform1i(glGetUniformLocation(renderManager.program, "depthComputation"), 0);
 
-	loadOFF("psb_test/m0.off");
+	loadObject("psb_test/m0.off");
 
 	int pitch_angle_step = 180;
 	int yaw_angle_step = 360;

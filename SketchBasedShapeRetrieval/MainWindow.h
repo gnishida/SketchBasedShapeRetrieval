@@ -5,13 +5,15 @@
 #include <QtGui/QMainWindow>
 #include "ui_MainWindow.h"
 #include "GLWidget3D.h"
+#include "RenderingControlWidget.h"
 
 class MainWindow : public QMainWindow {
 	Q_OBJECT
 
-private:
+public:
 	Ui::MainWindowClass ui;
 	GLWidget3D* glWidget;
+	RenderingControlWidget* controlWidget;
 
 public:
 	MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
@@ -22,6 +24,7 @@ public slots:
 	void onGALIFTest();
 	void onGaborFilterTest();
 	void onCollectOFFFiles();
+	void onChangeRendering();
 };
 
 #endif // MAINWINDOW_H
