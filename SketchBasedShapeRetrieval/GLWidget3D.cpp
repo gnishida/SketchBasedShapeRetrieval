@@ -154,14 +154,16 @@ void GLWidget3D::loadObject(const std::string& filename) {
 }
 
 void GLWidget3D::galifTest() {
-	ShapeMatching shapeMatching(this, width(), height(), 40, 4.0f, 10.0f, width() * 0.3f, height() * 0.3f);
+	ShapeMatching shapeMatching(this, width(), height(), 30, 4.0f, 10.0f, width() * 0.05f, height() * 0.05f, true);
 
 	// 現在のレンダリングモードをバックアップ
 	int currentRenderingMode = renderingMode;
 	renderingMode = RENDERING_MODE_LINE;
 
 	shapeMatching.learn("d:\\dataset\\windows\\", 1, 1);
-	shapeMatching.test("d:\\dataset\\window_sketch\\");
+	float accuracy = shapeMatching.test("d:\\dataset\\window_sketch\\", 1);
+
+	std::cout << "Accuracy: " << accuracy << std::endl;
 
 	// 元のレンダリングモードに戻す
 	renderingMode = currentRenderingMode;
@@ -219,3 +221,44 @@ void GLWidget3D::gaborFilterTest() {
 	BagOfFeature bof(image, "psb_test/m0.off", camera, 4.0f, 10.0f, width() * 0.2f, height() * 0.2f);
 }
 
+void GLWidget3D::parameterOptimization() {
+	// 現在のレンダリングモードをバックアップ
+	int currentRenderingMode = renderingMode;
+	renderingMode = RENDERING_MODE_LINE;
+
+	int numCentroids[] = {10, 20, 30, 40, 50, 60};
+	float feature_size[] = {0.1, 0.2, 0.3, 0.4};
+	bool useTfidf[] = {true, false};
+
+	float best_accuracy = 0.0f;
+	int best_numCentroids;
+	float best_feature_size;
+	bool best_useTfidf;
+	for (int i = 0; i < 6; ++i) {
+		for (int j = 0; j < 4; ++j) {
+			for (int k = 0; k < 2; ++k) {
+				ShapeMatching shapeMatching(this, width(), height(), numCentroids[i], 4.0f, 10.0f, width() * feature_size[j], height() * feature_size[j], useTfidf[k]);
+			
+				shapeMatching.learn("d:\\dataset\\windows\\", 1, 1);
+				float accuracy = shapeMatching.test("d:\\dataset\\window_sketch\\", 1);
+				std::cout << "#centroids: " << numCentroids[i] << ", Feature size: " << feature_size[j] << ", UseTfidf: " << useTfidf[k] << ", Accuracy: " << accuracy << std::endl;
+				if (accuracy > best_accuracy) {
+					best_accuracy = accuracy;
+					best_numCentroids = numCentroids[i];
+					best_feature_size = feature_size[j];
+					best_useTfidf = useTfidf[k];
+				}
+			}
+		}
+	}
+
+	std::cout << "======================================" << std::endl;
+	std::cout << "Best accuracy: " << best_accuracy << std::endl;
+	std::cout << "Best #centroids: " << best_numCentroids << std::endl;
+	std::cout << "Best feature_size: " << best_feature_size << std::endl;
+	std::cout << "Best useTfidf: " << best_useTfidf << std::endl;
+
+	// 元のレンダリングモードに戻す
+	renderingMode = currentRenderingMode;
+
+}

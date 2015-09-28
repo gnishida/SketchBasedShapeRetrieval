@@ -10,7 +10,7 @@ BagOfFeature::BagOfFeature(const cv::Mat& image, const std::string& filepath, co
 	extractFeatures(image, sigma, lmbd, patch_width, patch_height);
 }
 
-void BagOfFeature::computeHistogram(const std::vector<cv::Mat>& visualWords) {
+void BagOfFeature::computeHistogram(const std::vector<cv::Mat>& visualWords, const std::vector<float>& frequencies, bool useTfidf) {
 	histogram = cv::Mat::zeros(visualWords.size(), 1, CV_32F);
 
 	for (int i = 0; i < features.size(); ++i) {
@@ -28,7 +28,21 @@ void BagOfFeature::computeHistogram(const std::vector<cv::Mat>& visualWords) {
 		cvutils::mat_add_value(histogram, min_id, 0, 1);
 	}
 
-	histogram /= features.size();
+	if (useTfidf) {
+		// Tf-idf weighting
+		for (int r = 0; r < histogram.rows; ++r) {
+			float w;
+			if (frequencies[r] > 0.0) {
+				w = logf(1.0f / frequencies[r]);
+			} else {
+				w = 1000.0f;
+			}
+			double h = cvutils::mat_get_value(histogram, r, 0);
+			cvutils::mat_set_value(histogram, r, 0, h / features.size() * w);
+		}
+	} else {
+		histogram /= features.size();
+	}
 }
 
 void BagOfFeature::extractFeatures(const cv::Mat& image, float sigma, float lmbd, int patch_width, int patch_height) {
@@ -46,17 +60,11 @@ void BagOfFeature::extractFeatures(const cv::Mat& image, float sigma, float lmbd
 
 			cv::threshold(dest, dest, 125, 255, cv::THRESH_BINARY);
 
-			/*
-			char filename1[256];
-			sprintf(filename1, "results/gabor_%.1lf_%.1lf_%.1lf.jpg", sigma, lmbd, theta);
-			cv::imwrite(filename1, dest);
-			*/
-
-			/*
-			char filename2[256];
-			sprintf(filename2, "results/gabor_normalized_%.1lf_%.1lf_%.1lf.jpg", sigma, lmbd, theta);
-			cvutils::mat_save(filename2, dest, true);
-			*/
+			/*{
+				char filename1[256];
+				sprintf(filename1, "results/gabor_%.1lf_%.1lf_%.1lf.jpg", sigma, lmbd, theta);
+				cv::imwrite(filename1, dest);
+			}*/
 
 			filteredImages.push_back(dest);
 		}
@@ -67,6 +75,11 @@ void BagOfFeature::extractFeatures(const cv::Mat& image, float sigma, float lmbd
 	float patch_h_interval = (float)(filteredImages[0].rows - patch_height) / 31.0f;
 	float tile_w = patch_width / 4.0f;
 	float tile_h = patch_height / 4.0f;
+
+	cv::Mat patch_concatenated[4];
+	for (int k = 0; k < 4; ++k) {
+		patch_concatenated[k] = cv::Mat::zeros(128, 128, CV_32F);
+	}
 	
 	for (int u = 0; u < 32; ++u) {
 		for (int v = 0; v < 32; ++v) {
@@ -106,29 +119,30 @@ void BagOfFeature::extractFeatures(const cv::Mat& image, float sigma, float lmbd
 				}
 			}
 			
-			/*{
-				cv::Mat f2(8, 8, CV_64F);
-				for (int r = 0; r < 2; ++r) {
-					for (int c = 0; c < 2; ++c) {
-						for (int r2 = 0; r2 < 4; ++r2) {
-							for (int c2 = 0; c2 < 4; ++c2) {
-								cvutils::mat_set_value(f2, r * 4 + r2, c * 4 + c2, cvutils::mat_get_value(f, r * 32 + c * 16 + r2 * 4 + c2, 0));
-							}
-						}
-					}
-				}
-			
-				char filename2[256];
-				sprintf(filename2, "results/feature_normalized_%d_%d.jpg", u, v);
-				cvutils::mat_save(filename2, f2, true);
-			}*/
-
 			if (cv::sum(f)[0] > 0.0f) {
 				f /= cv::norm(f);
 				features.push_back(f);
 			}
+
+			/*{
+				for (int k = 0; k < 4; ++k) {
+					for (int r = 0; r < 4; ++r) {
+						for (int c = 0; c < 4; ++c) {
+							cvutils::mat_set_value(patch_concatenated[k], v * 4 + r, u * 4 + c, cvutils::mat_get_value(f, k * 16 + r * 4 + c, 0));
+						}
+					}
+				}
+			}*/
 		}
 	}
+
+	/*{
+		for (int k = 0; k < 4; ++k) {
+			char filename[256];
+			sprintf(filename, "bof_%d.jpg", k);
+			cvutils::mat_save(filename, patch_concatenated[k], true);
+		}
+	}*/
 }
 
 void BagOfFeature::findSimilarModels(const std::vector<BagOfFeature>& bofs, std::vector<int>& results, int n) {
@@ -145,8 +159,22 @@ void BagOfFeature::findSimilarModels(const std::vector<BagOfFeature>& bofs, std:
 	}
 }
 
+/**
+ * 2つの列ベクトルで表現されるヒストグラムの類似度を計算する。
+ */
 float BagOfFeature::similarity(const cv::Mat& h1, const cv::Mat& h2) {
 	//std::cout << h1 - h2 << std::endl;
 
-	return cvutils::mat_dot(h1, h2) / cv::norm(h1) / cv::norm(h2);
+	float ret = 1.0f;
+	for (int i = 0; i < h1.rows; ++i) {
+		double v1 = cvutils::mat_get_value(h1, i, 0);
+		double v2 = cvutils::mat_get_value(h2, i, 0);
+
+		if (v1 > 0 || v2 > 0) {
+			ret -= (v1 - v2) * (v1 - v2) / (v1 + v2) * 0.5;
+		}
+	}
+	return ret;
+
+	//return cvutils::mat_dot(h1, h2) / cv::norm(h1) / cv::norm(h2);
 }

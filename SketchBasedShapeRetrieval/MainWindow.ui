@@ -38,6 +38,8 @@
     <addaction name="actionGALIFTest"/>
     <addaction name="actionGaborFilterTest"/>
     <addaction name="separator"/>
+    <addaction name="actionParameterOptimization"/>
+    <addaction name="separator"/>
     <addaction name="actionCollectOFFFiles"/>
    </widget>
    <widget class="QMenu" name="menuRendering">
@@ -303,6 +305,11 @@
    </property>
    <property name="shortcut">
     <string>L</string>
+   </property>
+  </action>
+  <action name="actionParameterOptimization">
+   <property name="text">
+    <string>Parameter Optimization</string>
    </property>
   </action>
  </widget>

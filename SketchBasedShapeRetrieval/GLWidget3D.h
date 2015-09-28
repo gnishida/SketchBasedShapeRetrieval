@@ -23,11 +23,12 @@ public:
 	void loadObject(const std::string& filename);
 	void galifTest();
 	void gaborFilterTest();
+	void parameterOptimization();
 	void extractFeatures(const std::string& filename, int pitch_angle_num, int yaw_angle_num, std::vector<BagOfFeature>& features);
 	void renderImage(cv::Mat& image);
 	//void gaborFilter(const cv::Mat& src_img, std::vector<cv::Mat>& dst_imgs);
 	//void computeGALIF(const std::vector<cv::Mat>& filteredImages, BagOfFeature& bof);
-	void kmeans(const std::vector<BagOfFeature>& features, std::vector<cv::Mat>& centroids);
+	//void kmeans(const std::vector<BagOfFeature>& features, std::vector<cv::Mat>& centroids);
 
 protected:
 	void initializeGL();
