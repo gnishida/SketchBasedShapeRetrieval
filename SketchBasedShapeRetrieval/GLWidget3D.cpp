@@ -160,8 +160,8 @@ void GLWidget3D::galifTest() {
 	int currentRenderingMode = renderingMode;
 	renderingMode = RENDERING_MODE_LINE;
 
-	shapeMatching.learn("d:\\dataset\\psb\\", 6, 18);
-	shapeMatching.test("d:\\dataset\\sketch\\");
+	shapeMatching.learn("d:\\dataset\\windows\\", 1, 1);
+	shapeMatching.test("d:\\dataset\\window_sketch\\");
 
 	// 元のレンダリングモードに戻す
 	renderingMode = currentRenderingMode;
