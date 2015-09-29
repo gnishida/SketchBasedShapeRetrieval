@@ -37,6 +37,7 @@
     </property>
     <addaction name="actionGALIFTest"/>
     <addaction name="actionGaborFilterTest"/>
+    <addaction name="actionDistanceMap"/>
     <addaction name="separator"/>
     <addaction name="actionParameterOptimization"/>
     <addaction name="separator"/>
@@ -310,6 +311,11 @@
   <action name="actionParameterOptimization">
    <property name="text">
     <string>Parameter Optimization</string>
+   </property>
+  </action>
+  <action name="actionDistanceMap">
+   <property name="text">
+    <string>Distance Map</string>
    </property>
   </action>
  </widget>

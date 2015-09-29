@@ -1,8 +1,8 @@
 /********************************************************************************
 ** Form generated from reading UI file 'MainWindow.ui'
 **
-** Created: Mon Sep 28 18:06:25 2015
-**      by: Qt User Interface Compiler version 4.8.2
+** Created: Mon Sep 28 19:49:18 2015
+**      by: Qt User Interface Compiler version 4.8.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -62,6 +62,7 @@ public:
     QAction *actionRenderingRegular;
     QAction *actionRenderingLine;
     QAction *actionParameterOptimization;
+    QAction *actionDistanceMap;
     QWidget *centralWidget;
     QMenuBar *menuBar;
     QMenu *menuFile;
@@ -156,6 +157,8 @@ public:
         actionRenderingLine->setObjectName(QString::fromUtf8("actionRenderingLine"));
         actionParameterOptimization = new QAction(MainWindowClass);
         actionParameterOptimization->setObjectName(QString::fromUtf8("actionParameterOptimization"));
+        actionDistanceMap = new QAction(MainWindowClass);
+        actionDistanceMap->setObjectName(QString::fromUtf8("actionDistanceMap"));
         centralWidget = new QWidget(MainWindowClass);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         MainWindowClass->setCentralWidget(centralWidget);
@@ -184,6 +187,7 @@ public:
         menuFile->addAction(actionExit);
         menuTool->addAction(actionGALIFTest);
         menuTool->addAction(actionGaborFilterTest);
+        menuTool->addAction(actionDistanceMap);
         menuTool->addSeparator();
         menuTool->addAction(actionParameterOptimization);
         menuTool->addSeparator();
@@ -248,6 +252,7 @@ public:
         actionRenderingLine->setText(QApplication::translate("MainWindowClass", "Line", 0, QApplication::UnicodeUTF8));
         actionRenderingLine->setShortcut(QApplication::translate("MainWindowClass", "L", 0, QApplication::UnicodeUTF8));
         actionParameterOptimization->setText(QApplication::translate("MainWindowClass", "Parameter Optimization", 0, QApplication::UnicodeUTF8));
+        actionDistanceMap->setText(QApplication::translate("MainWindowClass", "Distance Map", 0, QApplication::UnicodeUTF8));
         menuFile->setTitle(QApplication::translate("MainWindowClass", "&File", 0, QApplication::UnicodeUTF8));
         menuTool->setTitle(QApplication::translate("MainWindowClass", "Tool", 0, QApplication::UnicodeUTF8));
         menuRendering->setTitle(QApplication::translate("MainWindowClass", "Rendering", 0, QApplication::UnicodeUTF8));

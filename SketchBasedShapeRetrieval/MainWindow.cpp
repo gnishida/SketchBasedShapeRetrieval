@@ -18,6 +18,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags) : QMainWindow(parent, 
 	connect(ui.actionExit, SIGNAL(triggered()), this, SLOT(close()));
 	connect(ui.actionGALIFTest, SIGNAL(triggered()), this, SLOT(onGALIFTest()));
 	connect(ui.actionGaborFilterTest, SIGNAL(triggered()), this, SLOT(onGaborFilterTest()));
+	connect(ui.actionDistanceMap, SIGNAL(triggered()), this, SLOT(onDistanceMap()));
 	connect(ui.actionParameterOptimization, SIGNAL(triggered()), this, SLOT(onParameterOptimization()));
 	connect(ui.actionCollectOFFFiles, SIGNAL(triggered()), this, SLOT(onCollectOFFFiles()));
 	connect(ui.actionRenderingRegular, SIGNAL(triggered()), this, SLOT(onChangeRendering()));
@@ -48,6 +49,9 @@ void MainWindow::onGALIFTest() {
 
 void MainWindow::onGaborFilterTest() {
 	glWidget->gaborFilterTest();
+}
+
+void MainWindow::onDistanceMap() {
 }
 
 void MainWindow::onParameterOptimization() {

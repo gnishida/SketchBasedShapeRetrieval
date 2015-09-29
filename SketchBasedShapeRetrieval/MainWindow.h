@@ -23,6 +23,7 @@ public slots:
 	void onOpenOFF();
 	void onGALIFTest();
 	void onGaborFilterTest();
+	void onDistanceMap();
 	void onParameterOptimization();
 	void onCollectOFFFiles();
 	void onChangeRendering();
